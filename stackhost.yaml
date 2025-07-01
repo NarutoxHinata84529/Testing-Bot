@@ -1,6 +1,6 @@
 user:
   name: NarutoxHinata84529
-  github: arsh456
+  github: NarutoxHinata84529
 
 language: "python"
 python_version: "3.10.13"
@@ -11,7 +11,7 @@ commands:
   package:
     - "nano inxi"
   start:
-    - "python3 bot.py"
+    - "python3 main.py"
 
 env:
   - "ENVIRONMENT=production"
