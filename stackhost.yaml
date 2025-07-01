@@ -1,0 +1,17 @@
+user:
+  name: NarutoxHinata84529
+  github: arsh456
+
+language: "python"
+python_version: "3.10.13"
+
+commands:
+  build:
+    - "pip install -r requirements.txt"
+  package:
+    - "nano inxi"
+  start:
+    - "python3 bot.py"
+
+env:
+  - "ENVIRONMENT=production"
