@@ -466,3 +466,236 @@ def set_warnlimit(message):
     except ValueError:
         bot.reply_to(message, "Invalid limit. Please enter a number.")
 
+@bot.message_handler(commands=['lock'])
+@admin_only
+def lock_all(message):
+    bot.set_chat_permissions(
+        message.chat.id,
+        types.ChatPermissions(can_send_messages=False)
+    )
+    bot.reply_to(message, "All chats have been locked.")
+
+@bot.message_handler(commands=['unlock'])
+@admin_only
+def unlock_all(message):
+    bot.set_chat_permissions(
+        message.chat.id,
+        types.ChatPermissions(can_send_messages=True)
+    )
+    bot.reply_to(message, "All chats have been unlocked.")
+
+
+@bot.message_handler(func=lambda message: True)
+def handle_afk_users(message):
+    if message.from_user.id in afk_users:
+        del afk_users[message.from_user.id]
+        bot.reply_to(message, f"Welcome back, {message.from_user.first_name}! You are no longer AFK.")
+    if message.reply_to_message and message.reply_to_message.from_user.id in afk_users:
+        reason, timestamp = afk_users[message.reply_to_message.from_user.id]
+        bot.reply_to(message, f"{message.reply_to_message.from_user.first_name} is AFK: {reason} (since {timestamp})")
+
+@bot.message_handler(func=lambda message: True)
+def handle_brb_users(message):
+    if message.from_user.id in brb_users:
+        del brb_users[message.from_user.id]
+        bot.reply_to(message, f"Welcome back, {message.from_user.first_name}! You are no longer brb.")
+    if message.reply_to_message and message.reply_to_message.from_user.id in afk_users:
+        reason, timestamp = brb_users[message.reply_to_message.from_user.id]
+        bot.reply_to(message, f"{message.reply_to_message.from_user.first_name} is Brb: {reason} (since {timestamp})")
+#New cmd
+
+@bot.message_handler(commands=['kick'])
+@admin_only
+def kick_command(message):
+    if not message.reply_to_message:
+        bot.reply_to(message, "Reply to the user you want to kick.")
+        return
+    user_to_kick = message.reply_to_message.from_user
+    bot.ban_chat_member(message.chat.id, user_to_kick.id)
+    bot.unban_chat_member(message.chat.id, user_to_kick.id)
+    bot.reply_to(message, f"Kicked {user_to_kick.first_name}.")
+
+'''# /mute command
+@bot.message_handler(commands=['mute'])
+@admin_only
+def mute_command(message):
+    if not message.reply_to_message:
+        bot.reply_to(message, "Reply to the user you want to mute.")
+        return
+    user_to_mute = message.reply_to_message.from_user
+    bot.restrict_chat_member(
+        message.chat.id,
+        user_to_mute.id,
+        ChatPermissions(can_send_messages=False)
+    )
+    bot.reply_to(message, f"Muted {user_to_mute.first_name}.")
+
+# /unmute command
+@bot.message_handler(commands=['unmute'])
+@admin_only
+def unmute_command(message):
+    if not message.reply_to_message:
+        bot.reply_to(message, "Reply to the user you want to unmute.")
+        return
+    user_to_unmute = message.reply_to_message.from_user
+    bot.restrict_chat_member(
+        message.chat.id,
+        user_to_unmute.id,
+        ChatPermissions(can_send_messages=True)
+    )
+    bot.reply_to(message, f"Unmuted {user_to_unmute.first_name}.")'''
+
+#Demote from private chat
+# Function to demote a user
+def demote_user(group_chat_id, user_id):
+    try:
+        bot.promote_chat_member(
+            chat_id=group_chat_id,
+            user_id=user_id,
+            can_manage_chat=False,
+            can_post_messages=False,
+            can_edit_messages=False,
+            can_delete_messages=False,
+            can_manage_video_chats=False,
+            can_restrict_members=False,
+            can_promote_members=False,
+            can_change_info=False,
+            can_invite_users=False,
+            can_pin_messages=False,
+        )
+        return True
+    except telebot.apihelper.ApiTelegramException as e:
+        logging.error(f"Failed to demote user: {e}")
+        return False
+
+#Handler for the /demote command in private chat
+@bot.message_handler(commands=["demote"])
+def handle_demote(message):
+    try:
+        # Parse the command: /demote <group_chat_id> <user_id>
+        args = message.text.split()
+        if len(args) != 3:
+            bot.reply_to(message, "Usage: /demote <group_chat_id> <user_id>")
+            return
+
+        group_chat_id = int(args[1])
+        user_id = int(args[2])
+
+        if demote_user(group_chat_id, user_id):
+            bot.reply_to(message, f"User {user_id} has been demoted in group {group_chat_id}.")
+        else:
+            bot.reply_to(message, "Failed to demote the user. Make sure the bot is an admin in the group.")
+    except ValueError:
+        bot.reply_to(message, "Invalid input. Use /demote <group_chat_id> <user_id>.")
+    except Exception as e:
+        logging.error(f"Error handling /demote command: {e}")
+        bot.reply_to(message, "An unexpected error occurred.")
+
+#Mute code not working
+'''@bot.message_handler(commands=['mute'])
+@admin_only
+def mute_command(message):
+    if not message.reply_to_message:
+        bot.reply_to(message, "Reply to the user you want to mute.")
+        return
+    user_to_mute = message.reply_to_message.from_user
+    bot.restrict_chat_member(
+        chat_id=message.chat.id,
+        user_id=user_to_mute.id,
+        permissions={
+            can_send_messages==False,
+            can_send_media_messages==False,
+            can_send_polls==False,
+            can_send_other_messages==False,
+            can_add_web_page_previews==False,
+            can_change_info==False,
+            can_invite_users==False,
+            can_pin_messages==False,
+        }
+    )
+    bot.reply_to(message, f"Muted {user_to_mute.first_name}.")
+
+@bot.message_handler(commands=['unmute'])
+@admin_only
+def unmute_command(message):
+    if not message.reply_to_message:
+        bot.reply_to(message, "Reply to the user you want to unmute.")
+        return
+    user_to_unmute = message.reply_to_message.from_user
+    bot.restrict_chat_member(
+        chat_id=message.chat.id,
+        user_id=user_to_unmute.id,
+        permissions={
+            can_send_messages==True,
+            can_send_media_messages== True,
+            can_send_polls==True,
+            can_send_other_messages==True,
+            can_add_web_page_previews==True,
+            can_change_info==False,
+            can_invite_users==True,
+            can_pin_messages==False,
+        }
+    )
+    bot.reply_to(message, f"Unmuted {user_to_unmute.first_name}.")
+
+#New mute code
+@bot.message_handler(commands=['mute'])
+@admin_only
+def mute_user(message):
+    user = get_user_from_message(message)
+    if user:
+        until_date = time.time() + (24 * 60 * 60)
+        bot.restrict_chat_member(message.chat.id, user.id, until_date=until_date, can_send_messages=False)
+        bot.reply_to(message, f"User {user.first_name} has been muted for 24 hours.")
+
+@bot.message_handler(commands=['unmute'])
+@admin_only
+def unmute_user(message):
+    user = get_user_from_args(message)
+    if user:
+        bot.restrict_chat_member(message.chat.id, user.id, can_send_messages=True)
+        bot.reply_to(message, f"User {user.first_name} has been unmuted.")
+'''
+@bot.message_handler(commands=['tmute'])
+@admin_only
+def tmute_user(message):
+    user = get_user_from_message(message)
+    if user:
+        args = message.text.split()
+        if len(args) > 1 and args[1].isdigit():
+            duration = int(args[1]) * 60  # in minutes
+            until_date = time.time() + duration
+            bot.restrict_chat_member(message.chat.id, user.id, until_date=until_date, can_send_messages=False)
+            bot.reply_to(message, f"User {user.first_name} has been muted for {args[1]} minutes.")
+
+
+#MUTE & UNMUTE CODE
+@bot.message_handler(commands=['mute'])
+@admin_only
+def mute_user(message):
+    user = get_user_from_message(message)
+    if user:
+        user_id = user.id
+        until_date = time.time() + 3600  # Mute for 1 hour
+        bot.restrict_chat_member(message.chat.id, user_id, until_date=until_date, can_send_messages=False)
+        muted_users[user_id] = until_date
+        bot.reply_to(message, f"User {user.first_name} has been muted for 1 hour.")
+
+@bot.message_handler(commands=['unmute'])
+@admin_only
+def unmute_user(message):
+    user = get_user_from_args(message)
+    if user:
+        user_id = user.id
+        bot.restrict_chat_member(message.chat.id, user_id, can_send_messages=True)
+        if user_id in muted_users:
+             del muted_users[user_id]
+        bot.reply_to(message, f"User {user.first_name} has been unmuted.")
+
+
+# Polling to keep the bot running
+def main():
+    bot.infinity_polling()
+print ( 'bot is working' )
+if __name__ == "__main__":
+    main()
