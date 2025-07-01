@@ -466,8 +466,3 @@ def set_warnlimit(message):
     except ValueError:
         bot.reply_to(message, "Invalid limit. Please enter a number.")
 
-@bot.message_handler(commands=['lock'])
-@admin_only
-def lock_all(message):
-    bot.set_chat_permissions(
-        message.chat.id,
