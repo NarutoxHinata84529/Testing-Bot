@@ -2,7 +2,7 @@ from pyrogram import Client, filters
 from pyrogram.types import Message
 
 # Your manager bot token
-BOT_TOKEN = "7880080240:AAHUBpbJ58ZQ33uPekAsu2coyiGHMDTo_xc"
+
 
 bot = Client("manager_bot", bot_token=BOT_TOKEN)
 
