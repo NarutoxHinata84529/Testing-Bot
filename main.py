@@ -6,7 +6,7 @@ import logging
 from datetime import datetime
 from telebot.types import ChatMember, ChatPermissions
 
-API_TOKEN(7629657845:AAEZiJjjtes3ZAUIJwf0mrnrlPJJmLq2WjE)
+
 bot = telebot.TeleBot(API_TOKEN)
 warnings = {}
 warn_limit = 3
